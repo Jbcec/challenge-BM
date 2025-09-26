@@ -42,6 +42,7 @@ export class TrialsService {
   }
 
   searchTrials(filters: Filters) {
+    this.pageTokens = '';
     this.loadingSubject.next(true);
 
     let params = new HttpParams().set('countTotal', 'true')
