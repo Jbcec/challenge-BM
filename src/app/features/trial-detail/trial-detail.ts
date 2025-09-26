@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrialsService } from '../../core/trials.service';
-import { TrialDetail } from '../../core/models';
+import { TrialDetail as ITrialDetail } from '../../core/models';
 import { Observable } from 'rxjs';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf, NgFor } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,7 @@ import { StatusIndicator } from '../../shared/components/status-indicator/status
   imports: [
     AsyncPipe,
     NgIf,
+    NgFor,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -30,8 +31,7 @@ import { StatusIndicator } from '../../shared/components/status-indicator/status
 export class TrialDetailComponent implements OnInit {
   trialId: string = '';
   loading$: Observable<boolean>;
-
-  trialDetail: TrialDetail | null = null;
+  trialDetail$: Observable<ITrialDetail | null>;
 
   constructor(
     private route: ActivatedRoute,
@@ -39,37 +39,16 @@ export class TrialDetailComponent implements OnInit {
     private trialsService: TrialsService
   ) {
     this.loading$ = this.trialsService.loading$;
+    this.trialDetail$ = this.trialsService.trialDetail$;
   }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.trialId = params['nctId'];
       if (this.trialId) {
-        this.loadTrialDetail();
+        this.trialsService.getTrial(this.trialId);
       }
     });
-  }
-
-  private loadTrialDetail() {
-
-    this.trialsService.trials$.subscribe(trials => {
-      const trial = trials.find(t => t.nctId === this.trialId);
-      if (trial) {
-        this.trialDetail = {
-          nctId: trial.nctId,
-          title: trial.title,
-          status: trial.status,
-          phase: trial.phase,
-          condition: trial.condition,
-          description: 'Detailed description will be loaded from the API...',
-          eligibility: 'Eligibility criteria will be loaded from the API...',
-          locations: [],
-          sponsor: 'Sponsor information will be loaded from the API...'
-        };
-      }
-    });
-
-    this.trialsService.getTrial(this.trialId);
   }
 
   goBack() {

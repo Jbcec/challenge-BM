@@ -19,7 +19,8 @@
     <p>Loading trial details...</p>
   </div>
 
-  <div class="detail-content" *ngIf="trialDetail && !(loading$ | async)">
+  <div class="detail-content" *ngIf="trialDetail$ | async as trialDetail; else noTrialData">
+
     <mat-card class="basic-info-card">
       <mat-card-header>
         <mat-card-title>{{trialDetail.title}}</mat-card-title>
@@ -95,7 +96,7 @@
           <div *ngFor="let location of trialDetail.locations" class="location-item">
             <mat-icon>place</mat-icon>
             <div class="location-info">
-              <div class="facility-name">{{location.facility?.name || 'Facility name not available'}}</div>
+              <div class="facility-name">{{location.facility || 'Facility name not available'}}</div>
               <div class="location-address">
                 {{location.city}}, {{location.state}} {{location.zip}}
                 <span *ngIf="location.country">, {{location.country}}</span>
@@ -103,26 +104,6 @@
             </div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="additional-info-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>info</mat-icon>
-          Additional Information
-        </mat-card-title>
-      </mat-card-header>
-
-      <mat-card-content>
-        <p><strong>Note:</strong> This is a demo implementation. In a real application, this would show:</p>
-        <ul>
-          <li>Detailed study timeline and phases</li>
-          <li>Primary and secondary outcomes</li>
-          <li>Intervention details</li>
-          <li>Contact information</li>
-          <li>Links to official documentation</li>
-        </ul>
       </mat-card-content>
     </mat-card>
 
@@ -141,13 +122,15 @@
     </div>
   </div>
 
-  <div class="no-data" *ngIf="!trialDetail && !(loading$ | async)">
-    <mat-icon>error_outline</mat-icon>
-    <h3>Trial not found</h3>
-    <p>The requested trial could not be found or loaded.</p>
-    <button mat-raised-button color="primary" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-      Back to Trials List
-    </button>
-  </div>
+  <ng-template #noTrialData>
+    <div class="no-data">
+      <mat-icon>error_outline</mat-icon>
+      <h3>Trial not found</h3>
+      <p>The requested trial could not be found or loaded.</p>
+      <button mat-raised-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Trials List
+      </button>
+    </div>
+  </ng-template>
 </div>

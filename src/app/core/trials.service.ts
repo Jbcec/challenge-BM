@@ -17,6 +17,15 @@ export class TrialsService {
   private followedSubject = new BehaviorSubject<Set<string>>(new Set());
   followed$ = this.followedSubject.asObservable();
 
+  private totalResultsSubject = new BehaviorSubject<number>(0);
+  totalResults$ = this.totalResultsSubject.asObservable();
+
+  private trialDetailSubject = new BehaviorSubject<TrialDetail | null>(null);
+  trialDetail$ = this.trialDetailSubject.asObservable();
+
+  private pageTokens: string = '';
+  currentPageIndex = 0;
+
   private isBrowser: boolean;
 
   constructor(
@@ -35,8 +44,14 @@ export class TrialsService {
   searchTrials(filters: Filters) {
     this.loadingSubject.next(true);
 
-    let params = new HttpParams()
+    let params = new HttpParams().set('countTotal', 'true')
       .set('pageSize', String(filters.pageSize ?? 20));
+
+    const token = this.pageTokens;
+    if (token) {
+      params = params.set('pageToken', token);
+    }
+
     if (filters.q) {
       params = params.set('query.cond', filters.q);
     }
@@ -44,7 +59,14 @@ export class TrialsService {
       params = params.set('filter.overallStatus', filters.status);
     }
     if (filters.phase) {
-      params = params.set('filter.phase', filters.phase);
+      let phaseValue = filters.phase;
+      if (phaseValue === 'PHASE1') phaseValue = '1';
+      else if (phaseValue === 'PHASE2') phaseValue = '2';
+      else if (phaseValue === 'PHASE3') phaseValue = '3';
+      else if (phaseValue === 'PHASE4') phaseValue = '4';
+      else if (phaseValue === 'NA') phaseValue = 'N/A';
+
+      params = params.set('aggFilters', `phase:${phaseValue}`);
     }
 
     params = params.set(
@@ -52,7 +74,6 @@ export class TrialsService {
       'NCTId,BriefTitle,OverallStatus,Phase,Condition'
     );
 
-    console.log('API Query params:', params.toString());
 
     this.http
       .get<any>(this.apiUrl, { params })
@@ -61,22 +82,32 @@ export class TrialsService {
           console.error('Error fetching trials:', err);
           console.error('Request URL:', `${this.apiUrl}?${params.toString()}`);
           this.trialsSubject.next([]);
+          this.totalResultsSubject.next(0);
           this.loadingSubject.next(false);
           return of(null);
         }),
         tap(() => this.loadingSubject.next(false))
       )
       .subscribe((resp) => {
-        console.log('API Response:', resp);
+
+        console.log(resp, params);
 
         if (!resp || !resp.studies) {
           console.log('No studies found in response');
           this.trialsSubject.next([]);
+          this.totalResultsSubject.next(0);
           return;
         }
 
+        if (resp.nextPageToken) {
+          this.pageTokens = resp.nextPageToken;
+        }
+
+        this.totalResultsSubject.next(
+          resp.totalCount
+        );
+
         const mapped: TrialSummary[] = resp.studies.map((study: any) => {
-          console.log('Processing study:', study);
 
           const protocolSection = study.protocolSection;
           const identificationModule = protocolSection?.identificationModule;
@@ -93,13 +124,17 @@ export class TrialsService {
           };
         });
 
-        console.log('Mapped trials:', mapped);
         this.trialsSubject.next(mapped);
+
+        if (filters.pageNumber !== undefined && resp.nextPageToken) {
+          this.pageTokens = resp.nextPageToken;
+        }
       });
   }
 
   getTrial(nctId: string) {
     this.loadingSubject.next(true);
+    this.trialDetailSubject.next(null);
 
     this.http
       .get<any>(`${this.apiUrl}/${nctId}`)
@@ -107,12 +142,16 @@ export class TrialsService {
         catchError((err) => {
           console.error('Error fetching trial detail:', err);
           this.loadingSubject.next(false);
+          this.trialDetailSubject.next(null);
           return of(null);
         }),
         tap(() => this.loadingSubject.next(false))
       )
       .subscribe((resp) => {
-        if (!resp || !resp.protocolSection) return;
+        if (!resp || !resp.protocolSection) {
+          this.trialDetailSubject.next(null);
+          return;
+        }
 
         const protocolSection = resp.protocolSection;
         const identificationModule = protocolSection.identificationModule;
@@ -125,18 +164,19 @@ export class TrialsService {
         const sponsorCollaboratorsModule = protocolSection.sponsorCollaboratorsModule;
 
         const detail: TrialDetail = {
-          nctId: identificationModule?.nctId || 'N/A',
+          nctId: identificationModule?.nctId || nctId,
           title: identificationModule?.briefTitle || 'No title available',
           status: statusModule?.overallStatus || 'Unknown',
           phase: designModule?.phases?.join(', ') || 'N/A',
           condition: conditionsModule?.conditions?.join(', ') || 'No condition specified',
           description: descriptionModule?.briefSummary || 'No description available',
-          eligibility: eligibilityModule?.eligibilityCriteria || 'No eligibility info',
+          eligibility: eligibilityModule?.eligibilityCriteria || 'No eligibility information available',
           locations: contactsLocationsModule?.locations || [],
           sponsor: sponsorCollaboratorsModule?.leadSponsor?.name || 'Unknown sponsor',
         };
 
         console.log('Detail fetched:', detail);
+        this.trialDetailSubject.next(detail);
       });
   }
 

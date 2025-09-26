@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { StatusIndicator } from '../../shared/components/status-indicator/status-indicator';
 
 @Component({
@@ -30,6 +31,7 @@ import { StatusIndicator } from '../../shared/components/status-indicator/status
     MatSlideToggleModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     AsyncPipe,
     NgIf,
     NgFor,
@@ -41,6 +43,7 @@ export class TrialsListComponent implements OnInit, OnDestroy {
   trials$: Observable<TrialSummary[]>;
   followed$: Observable<Set<string>>;
   loading$: Observable<boolean>;
+  totalResults$: Observable<number>;
 
   displayedTrials: TrialSummary[] = [];
   displayedColumns = ['nctId', 'title', 'phase', 'status', 'condition', 'follow'];
@@ -48,16 +51,49 @@ export class TrialsListComponent implements OnInit, OnDestroy {
   showOnlyFollowed = false;
   currentFilters: Filters = { q: '', status: '', phase: '', pageSize: 20 };
 
+  totalResults = 0;
+  pageIndex = 0;
+  pageSize = 20;
+  pageSizeOptions = [10, 20, 50, 100];
+
   private destroy$ = new Subject<void>();
+
+  private readonly statusDisplayMap: { [key: string]: string } = {
+    'RECRUITING': 'Recruiting',
+    'NOT_YET_RECRUITING': 'Not yet recruiting',
+    'ACTIVE_NOT_RECRUITING': 'Active, not recruiting',
+    'COMPLETED': 'Completed',
+    'TERMINATED': 'Terminated',
+    'SUSPENDED': 'Suspended',
+    'WITHDRAWN': 'Withdrawn',
+    'ENROLLING_BY_INVITATION': 'Enrolling by invitation'
+  };
+
+  private readonly phaseDisplayMap: { [key: string]: string } = {
+    'NA': 'N/A',
+    'PHASE1': 'Phase 1',
+    'PHASE2': 'Phase 2',
+    'PHASE3': 'Phase 3',
+    'PHASE4': 'Phase 4',
+    'PHASE1, PHASE2': 'Phase 1/Phase 2',
+    'PHASE2, PHASE3': 'Phase 2/Phase 3',
+    'EARLY_PHASE1': 'Early Phase 1',
+    'NOT_APPLICABLE': 'Not Applicable'
+  };
 
   constructor(private trialsService: TrialsService) {
     this.trials$ = this.trialsService.trials$;
     this.followed$ = this.trialsService.followed$;
     this.loading$ = this.trialsService.loading$;
+    this.totalResults$ = this.trialsService.totalResults$;
   }
 
   ngOnInit() {
-    this.trialsService.searchTrials({ q: 'cancer' });
+    this.trialsService.searchTrials({ q: '' });
+
+    this.totalResults$.pipe(takeUntil(this.destroy$)).subscribe(total => {
+      this.totalResults = total;
+    });
 
     combineLatest([
       this.trials$,
@@ -116,6 +152,8 @@ export class TrialsListComponent implements OnInit, OnDestroy {
   }
 
   private applyFilters() {
+    this.pageIndex = 0;
+    this.currentFilters.pageNumber = this.pageIndex;
     this.trialsService.searchTrials(this.currentFilters);
   }
 
@@ -146,4 +184,23 @@ export class TrialsListComponent implements OnInit, OnDestroy {
       this.displayedTrials = filteredTrials;
     });
   }
+
+  getStatusDisplayName(apiStatus: string): string {
+    return this.statusDisplayMap[apiStatus] || apiStatus;
+  }
+
+  getPhaseDisplayName(apiPhase: string): string {
+    return this.phaseDisplayMap[apiPhase] || apiPhase;
+  }
+
+  onPageChange(event: any) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.currentFilters.pageSize = this.pageSize;
+    this.currentFilters.pageNumber = this.pageIndex;
+    this.trialsService.currentPageIndex = this.pageIndex;
+
+    this.applyFilters();
+  }
+
 }

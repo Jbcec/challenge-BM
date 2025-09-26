@@ -31,4 +31,5 @@ export interface Filters {
   status?: string;
   phase?: string;
   pageSize?: number;
+  pageNumber?: number;
 }

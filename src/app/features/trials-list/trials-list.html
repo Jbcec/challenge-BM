@@ -2,10 +2,7 @@
   <div class="trials-header">
     <h1>Clinical Trials Search</h1>
     <div class="view-toggle">
-      <mat-slide-toggle
-        [checked]="showOnlyFollowed"
-        (change)="toggleFollowedView($event.checked)"
-        color="primary">
+      <mat-slide-toggle [checked]="showOnlyFollowed" (change)="toggleFollowedView($event.checked)" color="primary">
         Show only followed trials ({{(followed$ | async)?.size || 0}})
       </mat-slide-toggle>
     </div>
@@ -15,13 +12,11 @@
     <div class="filters-row">
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Search condition or title</mat-label>
-        <input matInput
-               #searchInput
-               [value]="currentFilters.q || ''"
-               (keyup.enter)="onSearch(searchInput.value)"
-               placeholder="Enter condition to search">
+        <input matInput #searchInput [value]="currentFilters.q || ''" (keyup.enter)="onSearch(searchInput.value)"
+          placeholder="Enter condition to search">
         <mat-icon matSuffix>search</mat-icon>
-        <button matSuffix mat-icon-button *ngIf="currentFilters.q" (click)="clearSearch(searchInput)" title="Clear search">
+        <button matSuffix mat-icon-button *ngIf="currentFilters.q" (click)="clearSearch(searchInput)"
+          title="Clear search">
           <mat-icon>clear</mat-icon>
         </button>
       </mat-form-field>
@@ -45,25 +40,40 @@
         <mat-label>Phase</mat-label>
         <mat-select [value]="currentFilters.phase || ''" (selectionChange)="onPhaseFilter($event.value)">
           <mat-option value="">All phases</mat-option>
-          <mat-option value="EARLY_PHASE1">Early Phase 1</mat-option>
+          <mat-option value="NA">N/A</mat-option>
           <mat-option value="PHASE1">Phase 1</mat-option>
-          <mat-option value="PHASE1_PHASE2">Phase 1/Phase 2</mat-option>
           <mat-option value="PHASE2">Phase 2</mat-option>
-          <mat-option value="PHASE2_PHASE3">Phase 2/Phase 3</mat-option>
           <mat-option value="PHASE3">Phase 3</mat-option>
           <mat-option value="PHASE4">Phase 4</mat-option>
-          <mat-option value="NOT_APPLICABLE">Not Applicable</mat-option>
         </mat-select>
       </mat-form-field>
 
-
-      <button mat-raised-button
-              *ngIf="hasActiveFilters()"
-              (click)="clearFilters(searchInput)"
-              class="clear-filters-btn">
+      <button mat-raised-button *ngIf="hasActiveFilters()" (click)="clearFilters(searchInput)"
+        class="clear-filters-btn">
         <mat-icon>filter_list_off</mat-icon>
         Clear Filters
       </button>
+    </div>
+
+    <div class="active-filters" *ngIf="hasActiveFilters()">
+      <span class="filters-label">
+        <mat-icon>filter_alt</mat-icon>
+        Active filters:
+      </span>
+      <div class="filter-chips">
+        <mat-chip *ngIf="currentFilters.q" class="filter-chip" removable="true" (removed)="clearSearch(searchInput)">
+          <mat-icon matChipRemove>cancel</mat-icon>
+          Search: "{{currentFilters.q}}"
+        </mat-chip>
+        <mat-chip *ngIf="currentFilters.status" class="filter-chip" removable="true" (removed)="onStatusFilter('')">
+          <mat-icon matChipRemove>cancel</mat-icon>
+          Status: {{getStatusDisplayName(currentFilters.status)}}
+        </mat-chip>
+        <mat-chip *ngIf="currentFilters.phase" class="filter-chip" removable="true" (removed)="onPhaseFilter('')">
+          <mat-icon matChipRemove>cancel</mat-icon>
+          Phase: {{getPhaseDisplayName(currentFilters.phase)}}
+        </mat-chip>
+      </div>
     </div>
 
     <div class="results-info" *ngIf="trials$ | async as trials">
@@ -80,9 +90,8 @@
   </div>
 
   <div class="table-container">
-    <mat-table *ngIf="displayedTrials && displayedTrials.length > 0; else noData"
-               [dataSource]="displayedTrials"
-               class="trials-table">
+    <mat-table *ngIf="displayedTrials && displayedTrials.length > 0; else noData" [dataSource]="displayedTrials"
+      class="trials-table">
 
       <ng-container matColumnDef="nctId">
         <mat-header-cell *matHeaderCellDef>
@@ -103,12 +112,13 @@
           <div class="trial-title">{{trial.title}}</div>
         </mat-cell>
       </ng-container>
+
       <ng-container matColumnDef="phase">
         <mat-header-cell *matHeaderCellDef>
           <strong>Phase</strong>
         </mat-header-cell>
         <mat-cell *matCellDef="let trial">
-          <mat-chip class="phase-chip">{{trial.phase}}</mat-chip>
+          <mat-chip class="phase-chip">{{getPhaseDisplayName(trial.phase)}}</mat-chip>
         </mat-cell>
       </ng-container>
 
@@ -119,7 +129,7 @@
         <mat-cell *matCellDef="let trial">
           <div class="status-container">
             <app-status-indicator [status]="trial.status"></app-status-indicator>
-            <span class="status-text">{{trial.status}}</span>
+            <span class="status-text">{{getStatusDisplayName(trial.status)}}</span>
           </div>
         </mat-cell>
       </ng-container>
@@ -138,10 +148,8 @@
           <strong>Follow</strong>
         </mat-header-cell>
         <mat-cell *matCellDef="let trial">
-          <button mat-icon-button
-                  (click)="toggleFollow(trial.nctId)"
-                  [title]="isFollowed(trial.nctId) ? 'Unfollow trial' : 'Follow trial'"
-                  class="follow-btn">
+          <button mat-icon-button (click)="toggleFollow(trial.nctId)"
+            [title]="isFollowed(trial.nctId) ? 'Unfollow trial' : 'Follow trial'" class="follow-btn">
             <mat-icon [class.followed]="isFollowed(trial.nctId)">
               {{isFollowed(trial.nctId) ? 'star' : 'star_border'}}
             </mat-icon>
@@ -153,6 +161,11 @@
       <mat-row *matRowDef="let row; columns: displayedColumns;" class="trial-row"></mat-row>
     </mat-table>
 
+
+    <mat-paginator *ngIf="displayedTrials && displayedTrials.length > 0" [length]="totalResults" [pageIndex]="pageIndex"
+      [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (page)="onPageChange($event)" showFirstLastButtons
+      class="trials-paginator">
+    </mat-paginator>
     <ng-template #noData>
       <div class="no-data-message">
         <mat-icon class="no-data-icon">search_off</mat-icon>
@@ -161,14 +174,24 @@
           You haven't followed any trials yet. Use the star button to follow trials.
         </p>
         <ng-template #noTrialsText>
-          <p>Try adjusting your search criteria or filters.</p>
+          <p *ngIf="hasActiveFilters(); else noTrialsAtAll">
+            No trials match your current filters. Try adjusting your search criteria.
+          </p>
+          <ng-template #noTrialsAtAll>
+            <p>No trials available at the moment. Try searching for a specific condition.</p>
+          </ng-template>
         </ng-template>
-        <button mat-raised-button
-                *ngIf="hasActiveFilters() && !showOnlyFollowed"
-                (click)="clearFilters()"
-                color="primary">
-          Clear all filters
-        </button>
+        <div class="no-data-actions">
+          <button mat-raised-button *ngIf="hasActiveFilters() && !showOnlyFollowed" (click)="clearFilters()"
+            color="primary">
+            <mat-icon>filter_list_off</mat-icon>
+            Clear all filters
+          </button>
+          <button mat-raised-button *ngIf="showOnlyFollowed" (click)="toggleFollowedView(false)" color="accent">
+            <mat-icon>list</mat-icon>
+            Show all trials
+          </button>
+        </div>
       </div>
     </ng-template>
   </div>
