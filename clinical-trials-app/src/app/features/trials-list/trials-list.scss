@@ -1,0 +1,351 @@
+.trials-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .trials-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 16px;
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 400;
+      color: #1976d2;
+    }
+
+    .view-toggle {
+      .mat-slide-toggle {
+        .mat-slide-toggle-label {
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .filters-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    border: 1px solid #e9ecef;
+
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+
+      .search-field {
+        flex: 2;
+        min-width: 300px;
+      }
+
+      .filter-field {
+        flex: 1;
+        min-width: 180px;
+      }
+
+      .clear-filters-btn {
+        margin-top: 8px;
+        background-color: #ff5722;
+        color: white;
+
+        &:hover {
+          background-color: #f4511e;
+        }
+      }
+    }
+
+    .active-filters {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: #e3f2fd;
+      border-radius: 6px;
+      border-left: 4px solid #1976d2;
+
+      .filters-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: #1976d2;
+        font-weight: 500;
+        white-space: nowrap;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .filter-chip {
+          background-color: #1976d2;
+          color: white;
+          font-size: 0.8rem;
+
+          mat-icon {
+            color: white;
+          }
+
+          &:hover {
+            background-color: #1565c0;
+          }
+        }
+      }
+    }
+
+    .results-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #dee2e6;
+      font-size: 0.9rem;
+      color: #6c757d;
+
+      .results-count {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .loading-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #1976d2;
+      }
+    }
+  }
+
+  .table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+
+    .trials-table {
+      width: 100%;
+
+      .mat-header-cell {
+        background-color: #f5f5f5;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #1976d2;
+        padding: 16px 12px;
+      }
+
+      .mat-cell {
+        padding: 16px 12px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .trial-row {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+
+      .nct-link {
+        color: #1976d2;
+        text-decoration: none;
+        font-weight: 500;
+        font-family: 'Courier New', monospace;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .trial-title {
+        max-width: 400px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .phase-chip {
+        background-color: #e3f2fd;
+        color: #1565c0;
+        font-size: 0.8rem;
+        font-weight: 500;
+        min-height: 24px;
+        border-radius: 12px;
+      }
+
+      .status-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .status-text {
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+      }
+
+      .condition-text {
+        max-width: 300px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .follow-btn {
+        transition: all 0.2s ease;
+
+        mat-icon {
+          color: #bdbdbd;
+          transition: color 0.2s ease;
+
+          &.followed {
+            color: #ffa000;
+          }
+        }
+
+        &:hover mat-icon {
+          color: #ffa000;
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+
+  .no-data-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+
+    .no-data-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    h3 {
+      margin: 16px 0 8px 0;
+      color: #495057;
+    }
+
+    p {
+      margin: 8px 0 24px 0;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.5;
+    }
+
+    .no-data-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      button mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+
+    p {
+      margin-top: 16px;
+      color: #1976d2;
+      font-weight: 500;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .trials-container {
+    padding: 16px;
+
+    .filters-section .filters-row {
+      .search-field {
+        min-width: 250px;
+      }
+
+      .filter-field {
+        min-width: 150px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .trials-container {
+    padding: 12px;
+
+    .trials-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .filters-section .filters-row {
+      flex-direction: column;
+
+      .search-field,
+      .filter-field {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+
+    .table-container .trials-table {
+      .trial-title {
+        max-width: 200px;
+      }
+
+      .condition-text {
+        max-width: 150px;
+      }
+    }
+  }
+}

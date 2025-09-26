@@ -1,0 +1,40 @@
+.status-indicator {
+  display: inline-block;
+
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  &.status-recruiting .status-dot {
+    background-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
+
+  &.status-completed .status-dot {
+    background-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+
+  &.status-terminated .status-dot {
+    background-color: #f44336;
+    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+  }
+
+  &.status-suspended .status-dot {
+    background-color: #ff9800;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+  }
+
+  &.status-active .status-dot {
+    background-color: #9c27b0;
+    box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+  }
+
+  &.status-unknown .status-dot {
+    background-color: #9e9e9e;
+    box-shadow: 0 0 0 2px rgba(158, 158, 158, 0.2);
+  }
+}

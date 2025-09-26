@@ -1,0 +1,153 @@
+<div class="trial-detail-container">
+  <div class="detail-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Trial Details</h1>
+    <button mat-icon-button
+            (click)="toggleFollow()"
+            [title]="isFollowed() ? 'Unfollow trial' : 'Follow trial'"
+            class="follow-btn">
+      <mat-icon [class.followed]="isFollowed()">
+        {{isFollowed() ? 'star' : 'star_border'}}
+      </mat-icon>
+    </button>
+  </div>
+
+  <div class="loading-container" *ngIf="loading$ | async">
+    <mat-spinner></mat-spinner>
+    <p>Loading trial details...</p>
+  </div>
+
+  <div class="detail-content" *ngIf="trialDetail && !(loading$ | async)">
+    <mat-card class="basic-info-card">
+      <mat-card-header>
+        <mat-card-title>{{trialDetail.title}}</mat-card-title>
+        <mat-card-subtitle>{{trialDetail.nctId}}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Status:</label>
+            <div class="status-container">
+              <app-status-indicator [status]="trialDetail.status"></app-status-indicator>
+              <span>{{trialDetail.status}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <label>Phase:</label>
+            <mat-chip class="phase-chip">{{trialDetail.phase}}</mat-chip>
+          </div>
+
+          <div class="info-item">
+            <label>Condition:</label>
+            <span>{{trialDetail.condition}}</span>
+          </div>
+
+          <div class="info-item">
+            <label>Sponsor:</label>
+            <span>{{trialDetail.sponsor}}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="description-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>description</mat-icon>
+          Study Description
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p>{{trialDetail.description}}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="eligibility-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>checklist</mat-icon>
+          Eligibility Criteria
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="eligibility-content">
+          {{trialDetail.eligibility}}
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="locations-card" *ngIf="trialDetail.locations && trialDetail.locations.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>location_on</mat-icon>
+          Study Locations
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="locations-list">
+          <div *ngFor="let location of trialDetail.locations" class="location-item">
+            <mat-icon>place</mat-icon>
+            <div class="location-info">
+              <div class="facility-name">{{location.facility?.name || 'Facility name not available'}}</div>
+              <div class="location-address">
+                {{location.city}}, {{location.state}} {{location.zip}}
+                <span *ngIf="location.country">, {{location.country}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="additional-info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Additional Information
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p><strong>Note:</strong> This is a demo implementation. In a real application, this would show:</p>
+        <ul>
+          <li>Detailed study timeline and phases</li>
+          <li>Primary and secondary outcomes</li>
+          <li>Intervention details</li>
+          <li>Contact information</li>
+          <li>Links to official documentation</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="actions-section">
+      <button mat-raised-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Trials List
+      </button>
+
+      <button mat-raised-button
+              [color]="isFollowed() ? 'warn' : 'accent'"
+              (click)="toggleFollow()">
+        <mat-icon>{{isFollowed() ? 'star' : 'star_border'}}</mat-icon>
+        {{isFollowed() ? 'Unfollow' : 'Follow'}} Trial
+      </button>
+    </div>
+  </div>
+
+  <div class="no-data" *ngIf="!trialDetail && !(loading$ | async)">
+    <mat-icon>error_outline</mat-icon>
+    <h3>Trial not found</h3>
+    <p>The requested trial could not be found or loaded.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Trials List
+    </button>
+  </div>
+</div>

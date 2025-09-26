@@ -1,0 +1,180 @@
+<div class="trials-container">
+  <div class="trials-header">
+    <h1>Clinical Trials Search</h1>
+    <div class="view-toggle">
+      <mat-slide-toggle
+        [checked]="showOnlyFollowed"
+        (change)="toggleFollowedView($event.checked)"
+        color="primary">
+        Show only followed trials ({{(followed$ | async)?.size || 0}})
+      </mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filters-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search condition or title</mat-label>
+        <input matInput
+               #searchInput
+               [value]="currentFilters.q || ''"
+               (keyup.enter)="onSearch(searchInput.value)"
+               placeholder="Enter condition to search">
+        <mat-icon matSuffix>search</mat-icon>
+        <button matSuffix mat-icon-button *ngIf="currentFilters.q" (click)="clearSearch(searchInput)" title="Clear search">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select [value]="currentFilters.status || ''" (selectionChange)="onStatusFilter($event.value)">
+          <mat-option value="">All statuses</mat-option>
+          <mat-option value="RECRUITING">Recruiting</mat-option>
+          <mat-option value="NOT_YET_RECRUITING">Not yet recruiting</mat-option>
+          <mat-option value="ACTIVE_NOT_RECRUITING">Active, not recruiting</mat-option>
+          <mat-option value="COMPLETED">Completed</mat-option>
+          <mat-option value="TERMINATED">Terminated</mat-option>
+          <mat-option value="SUSPENDED">Suspended</mat-option>
+          <mat-option value="WITHDRAWN">Withdrawn</mat-option>
+          <mat-option value="ENROLLING_BY_INVITATION">Enrolling by invitation</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Phase</mat-label>
+        <mat-select [value]="currentFilters.phase || ''" (selectionChange)="onPhaseFilter($event.value)">
+          <mat-option value="">All phases</mat-option>
+          <mat-option value="EARLY_PHASE1">Early Phase 1</mat-option>
+          <mat-option value="PHASE1">Phase 1</mat-option>
+          <mat-option value="PHASE1_PHASE2">Phase 1/Phase 2</mat-option>
+          <mat-option value="PHASE2">Phase 2</mat-option>
+          <mat-option value="PHASE2_PHASE3">Phase 2/Phase 3</mat-option>
+          <mat-option value="PHASE3">Phase 3</mat-option>
+          <mat-option value="PHASE4">Phase 4</mat-option>
+          <mat-option value="NOT_APPLICABLE">Not Applicable</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+
+      <button mat-raised-button
+              *ngIf="hasActiveFilters()"
+              (click)="clearFilters(searchInput)"
+              class="clear-filters-btn">
+        <mat-icon>filter_list_off</mat-icon>
+        Clear Filters
+      </button>
+    </div>
+
+    <div class="results-info" *ngIf="trials$ | async as trials">
+      <span class="results-count">
+        <mat-icon>info</mat-icon>
+        Showing {{displayedTrials?.length || 0}} of {{trials.length}} trials
+        <span *ngIf="showOnlyFollowed"> (followed)</span>
+      </span>
+      <span class="loading-indicator" *ngIf="loading$ | async">
+        <mat-spinner diameter="16"></mat-spinner>
+        Loading...
+      </span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <mat-table *ngIf="displayedTrials && displayedTrials.length > 0; else noData"
+               [dataSource]="displayedTrials"
+               class="trials-table">
+
+      <ng-container matColumnDef="nctId">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>NCT ID</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <a [routerLink]="['/trials', trial.nctId]" class="nct-link">
+            {{trial.nctId}}
+          </a>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="title">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>Title</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <div class="trial-title">{{trial.title}}</div>
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="phase">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>Phase</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <mat-chip class="phase-chip">{{trial.phase}}</mat-chip>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>Status</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <div class="status-container">
+            <app-status-indicator [status]="trial.status"></app-status-indicator>
+            <span class="status-text">{{trial.status}}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="condition">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>Condition</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <div class="condition-text">{{trial.condition}}</div>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="follow">
+        <mat-header-cell *matHeaderCellDef>
+          <strong>Follow</strong>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let trial">
+          <button mat-icon-button
+                  (click)="toggleFollow(trial.nctId)"
+                  [title]="isFollowed(trial.nctId) ? 'Unfollow trial' : 'Follow trial'"
+                  class="follow-btn">
+            <mat-icon [class.followed]="isFollowed(trial.nctId)">
+              {{isFollowed(trial.nctId) ? 'star' : 'star_border'}}
+            </mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" class="trial-row"></mat-row>
+    </mat-table>
+
+    <ng-template #noData>
+      <div class="no-data-message">
+        <mat-icon class="no-data-icon">search_off</mat-icon>
+        <h3>No trials found</h3>
+        <p *ngIf="showOnlyFollowed; else noTrialsText">
+          You haven't followed any trials yet. Use the star button to follow trials.
+        </p>
+        <ng-template #noTrialsText>
+          <p>Try adjusting your search criteria or filters.</p>
+        </ng-template>
+        <button mat-raised-button
+                *ngIf="hasActiveFilters() && !showOnlyFollowed"
+                (click)="clearFilters()"
+                color="primary">
+          Clear all filters
+        </button>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="loading-overlay" *ngIf="loading$ | async">
+    <mat-spinner></mat-spinner>
+    <p>Searching trials...</p>
+  </div>
+</div>

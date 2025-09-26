@@ -1,0 +1,64 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fafafa;
+  color: #333;
+  line-height: 1.5;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-table {
+  background: white;
+}
+
+.mat-header-cell {
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.mat-cell {
+  color: #555 !important;
+}
+
+.text-center { text-align: center; }
+.text-muted { color: #6c757d !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mt-1 { margin-top: 8px !important; }
+.mt-2 { margin-top: 16px !important; }
+.mb-1 { margin-bottom: 8px !important; }
+.mb-2 { margin-bottom: 16px !important; }
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.pulse { animation: pulse 2s infinite; }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
