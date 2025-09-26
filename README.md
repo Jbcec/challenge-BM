@@ -29,7 +29,7 @@ Aplicación SPA desarrollada en **Angular 20** con **Angular Material** que perm
 
 ---
 
-## ⚙️ Instalación y ejecución
+## ⚙️ Instalación y ejecución en localhost:4200
 
 Clonar el repositorio y entrar al proyecto:
 
