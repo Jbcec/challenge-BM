@@ -62,4 +62,22 @@ export class TrialDetailComponent implements OnInit {
   isFollowed(): boolean {
     return this.trialsService.getCurrentFollowed().has(this.trialId);
   }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+
+    const parts = dateString.split('-');
+
+    if (parts.length === 2) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const year = parts[0];
+      const month = months[parseInt(parts[1]) - 1];
+      return `${month} ${year}`;
+    } else if (parts.length === 3) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    return dateString;
+  }
 }

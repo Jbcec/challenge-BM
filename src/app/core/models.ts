@@ -24,6 +24,15 @@ export interface TrialDetail {
   eligibility: string;
   locations: any[];
   sponsor: string;
+  timeline?: {
+    statusVerifiedDate?: string;
+    startDate?: string;
+    primaryCompletionDate?: string;
+    completionDate?: string;
+    studyFirstSubmitDate?: string;
+    studyFirstPostDate?: string;
+    lastUpdatePostDate?: string;
+  };
 }
 
 export interface Filters {

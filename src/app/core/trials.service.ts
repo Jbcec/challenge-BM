@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, catchError, of, tap, Observable, map } from 'rxjs';
 import { TrialSummary, TrialDetail, Filters } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -24,7 +24,7 @@ export class TrialsService {
   trialDetail$ = this.trialDetailSubject.asObservable();
 
   private pageTokens: string = '';
-  currentPageIndex = 0;
+  private currentSearchTotalCount = 0;
 
   private isBrowser: boolean;
 
@@ -42,15 +42,19 @@ export class TrialsService {
   }
 
   searchTrials(filters: Filters) {
-    this.pageTokens = '';
     this.loadingSubject.next(true);
 
-    let params = new HttpParams().set('countTotal', 'true')
+    let params = new HttpParams()
+      .set('countTotal', 'true')
       .set('pageSize', String(filters.pageSize ?? 20));
 
-    const token = this.pageTokens;
-    if (token) {
-      params = params.set('pageToken', token);
+    if (!filters.pageNumber || filters.pageNumber === 0) {
+      this.pageTokens = '';
+      this.currentSearchTotalCount = 0;
+    }
+
+    if (this.pageTokens && filters.pageNumber && filters.pageNumber > 0) {
+      params = params.set('pageToken', this.pageTokens);
     }
 
     if (filters.q) {
@@ -75,13 +79,13 @@ export class TrialsService {
       'NCTId,BriefTitle,OverallStatus,Phase,Condition'
     );
 
+    console.log('API Query params:', params.toString());
 
     this.http
       .get<any>(this.apiUrl, { params })
       .pipe(
         catchError((err) => {
           console.error('Error fetching trials:', err);
-          console.error('Request URL:', `${this.apiUrl}?${params.toString()}`);
           this.trialsSubject.next([]);
           this.totalResultsSubject.next(0);
           this.loadingSubject.next(false);
@@ -90,11 +94,10 @@ export class TrialsService {
         tap(() => this.loadingSubject.next(false))
       )
       .subscribe((resp) => {
-
-        console.log(resp, params);
+        console.log('API Response:', resp);
 
         if (!resp || !resp.studies) {
-          console.log('No studies found in response');
+          console.log('No studies found');
           this.trialsSubject.next([]);
           this.totalResultsSubject.next(0);
           return;
@@ -102,14 +105,20 @@ export class TrialsService {
 
         if (resp.nextPageToken) {
           this.pageTokens = resp.nextPageToken;
+        } else {
+          this.pageTokens = '';
         }
 
-        this.totalResultsSubject.next(
-          resp.totalCount
-        );
+        if (resp.totalCount !== undefined) {
+          this.currentSearchTotalCount = resp.totalCount;
+          this.totalResultsSubject.next(resp.totalCount);
+          console.log('✅ Total count saved from FIRST page:', this.currentSearchTotalCount);
+        } else {
+          this.totalResultsSubject.next(this.currentSearchTotalCount);
+          console.log('♻️ Using saved total count:', this.currentSearchTotalCount);
+        }
 
         const mapped: TrialSummary[] = resp.studies.map((study: any) => {
-
           const protocolSection = study.protocolSection;
           const identificationModule = protocolSection?.identificationModule;
           const statusModule = protocolSection?.statusModule;
@@ -125,11 +134,8 @@ export class TrialsService {
           };
         });
 
+        console.log(`📊 Mapped ${mapped.length} trials`);
         this.trialsSubject.next(mapped);
-
-        if (filters.pageNumber !== undefined && resp.nextPageToken) {
-          this.pageTokens = resp.nextPageToken;
-        }
       });
   }
 
@@ -174,6 +180,15 @@ export class TrialsService {
           eligibility: eligibilityModule?.eligibilityCriteria || 'No eligibility information available',
           locations: contactsLocationsModule?.locations || [],
           sponsor: sponsorCollaboratorsModule?.leadSponsor?.name || 'Unknown sponsor',
+          timeline: {
+            statusVerifiedDate: statusModule?.statusVerifiedDate,
+            startDate: statusModule?.startDateStruct?.date,
+            primaryCompletionDate: statusModule?.primaryCompletionDateStruct?.date,
+            completionDate: statusModule?.completionDateStruct?.date,
+            studyFirstSubmitDate: statusModule?.studyFirstSubmitDate,
+            studyFirstPostDate: statusModule?.studyFirstPostDateStruct?.date,
+            lastUpdatePostDate: statusModule?.lastUpdatePostDateStruct?.date
+          }
         };
 
         console.log('Detail fetched:', detail);
@@ -199,5 +214,46 @@ export class TrialsService {
 
   getCurrentFollowed(): Set<string> {
     return this.followedSubject.value;
+  }
+
+  loadFollowedTrials(nctIds: string[]): Observable<TrialSummary[]> {
+    if (nctIds.length === 0) {
+      return of([]);
+    }
+
+    const nctQuery = nctIds.join(' OR ');
+
+    let params = new HttpParams()
+      .set('query.id', nctQuery)
+      .set('pageSize', String(nctIds.length > 100 ? 100 : nctIds.length))
+      .set('fields', 'NCTId,BriefTitle,OverallStatus,Phase,Condition');
+
+    return this.http.get<any>(this.apiUrl, { params }).pipe(
+      map(resp => {
+        if (!resp || !resp.studies) {
+          return [];
+        }
+
+        return resp.studies.map((study: any) => {
+          const protocolSection = study.protocolSection;
+          const identificationModule = protocolSection?.identificationModule;
+          const statusModule = protocolSection?.statusModule;
+          const designModule = protocolSection?.designModule;
+          const conditionsModule = protocolSection?.conditionsModule;
+
+          return {
+            nctId: identificationModule?.nctId || study.nctId || 'N/A',
+            title: identificationModule?.briefTitle || 'No title available',
+            phase: designModule?.phases?.join(', ') || 'N/A',
+            status: statusModule?.overallStatus || 'Unknown',
+            condition: conditionsModule?.conditions?.join(', ') || 'No condition specified'
+          };
+        });
+      }),
+      catchError(err => {
+        console.error('Error loading followed trials:', err);
+        return of([]);
+      })
+    );
   }
 }

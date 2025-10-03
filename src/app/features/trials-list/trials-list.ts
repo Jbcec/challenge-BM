@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AsyncPipe, NgIf, NgFor } from '@angular/common';
+import { AsyncPipe, NgIf, NgFor, DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TrialsService } from '../../core/trials.service';
 import { Observable, Subject, combineLatest, map, takeUntil } from 'rxjs';
@@ -33,6 +33,7 @@ import { StatusIndicator } from '../../shared/components/status-indicator/status
     MatProgressSpinnerModule,
     MatPaginatorModule,
     AsyncPipe,
+    DecimalPipe,
     NgIf,
     NgFor,
     RouterModule,
@@ -75,8 +76,6 @@ export class TrialsListComponent implements OnInit, OnDestroy {
     'PHASE2': 'Phase 2',
     'PHASE3': 'Phase 3',
     'PHASE4': 'Phase 4',
-    'PHASE1, PHASE2': 'Phase 1/Phase 2',
-    'PHASE2, PHASE3': 'Phase 2/Phase 3',
     'EARLY_PHASE1': 'Early Phase 1',
     'NOT_APPLICABLE': 'Not Applicable'
   };
@@ -89,7 +88,7 @@ export class TrialsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.trialsService.searchTrials({ q: '' });
+    this.trialsService.searchTrials({ q: 'cancer' });
 
     this.totalResults$.pipe(takeUntil(this.destroy$)).subscribe(total => {
       this.totalResults = total;
@@ -153,7 +152,7 @@ export class TrialsListComponent implements OnInit, OnDestroy {
 
   private applyFilters() {
     this.pageIndex = 0;
-    this.currentFilters.pageNumber = this.pageIndex;
+    this.currentFilters.pageNumber = 0;
     this.trialsService.searchTrials(this.currentFilters);
   }
 
@@ -169,20 +168,30 @@ export class TrialsListComponent implements OnInit, OnDestroy {
   toggleFollowedView(showOnlyFollowed: boolean) {
     this.showOnlyFollowed = showOnlyFollowed;
 
-    combineLatest([
-      this.trials$,
-      this.followed$
-    ]).pipe(
-      takeUntil(this.destroy$),
-      map(([trials, followed]) => {
-        if (this.showOnlyFollowed) {
-          return trials.filter(trial => followed.has(trial.nctId));
-        }
-        return trials;
-      })
-    ).subscribe(filteredTrials => {
-      this.displayedTrials = filteredTrials;
-    });
+    if (this.showOnlyFollowed) {
+      const followedIds = Array.from(this.trialsService.getCurrentFollowed());
+
+      if (followedIds.length === 0) {
+        this.displayedTrials = [];
+        return;
+      }
+
+      this.trialsService.loadFollowedTrials(followedIds).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(followedTrials => {
+        this.displayedTrials = followedTrials;
+      });
+    } else {
+      combineLatest([
+        this.trials$,
+        this.followed$
+      ]).pipe(
+        takeUntil(this.destroy$),
+        map(([trials]) => trials)
+      ).subscribe(filteredTrials => {
+        this.displayedTrials = filteredTrials;
+      });
+    }
   }
 
   getStatusDisplayName(apiStatus: string): string {
@@ -198,9 +207,16 @@ export class TrialsListComponent implements OnInit, OnDestroy {
     this.pageSize = event.pageSize;
     this.currentFilters.pageSize = this.pageSize;
     this.currentFilters.pageNumber = this.pageIndex;
-    this.trialsService.currentPageIndex = this.pageIndex;
 
-    this.applyFilters();
+    this.trialsService.searchTrials(this.currentFilters);
   }
 
+  getPageStartRange(): number {
+    return (this.pageIndex * this.pageSize) + 1;
+  }
+
+  getPageEndRange(): number {
+    const calculatedEnd = (this.pageIndex + 1) * this.pageSize;
+    return calculatedEnd > this.totalResults ? this.totalResults : calculatedEnd;
+  }
 }

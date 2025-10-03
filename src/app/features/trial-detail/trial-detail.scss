@@ -129,10 +129,118 @@
     .description-card,
     .eligibility-card {
       .mat-card-content {
-        p, .eligibility-content {
+
+        p,
+        .eligibility-content {
           line-height: 1.6;
           color: #555;
           white-space: pre-wrap;
+        }
+      }
+    }
+
+    .timeline-card {
+      .timeline-container {
+        position: relative;
+        padding: 24px 0;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 30px;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background: linear-gradient(to bottom, #1976d2, #64b5f6);
+        }
+
+        .timeline-item {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          gap: 24px;
+          margin-bottom: 32px;
+          padding-left: 0;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          .timeline-marker {
+            position: relative;
+            z-index: 1;
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 3px #1976d2;
+            margin-left: 22px;
+            margin-top: 4px;
+
+            &.first-submit {
+              background-color: #9c27b0;
+              box-shadow: 0 0 0 3px #9c27b0;
+            }
+
+            &.first-post {
+              background-color: #673ab7;
+              box-shadow: 0 0 0 3px #673ab7;
+            }
+
+            &.start-date {
+              background-color: #4caf50;
+              box-shadow: 0 0 0 3px #4caf50;
+            }
+
+            &.primary-completion {
+              background-color: #ff9800;
+              box-shadow: 0 0 0 3px #ff9800;
+            }
+
+            &.completion {
+              background-color: #2196f3;
+              box-shadow: 0 0 0 3px #2196f3;
+            }
+
+            &.verified {
+              background-color: #00bcd4;
+              box-shadow: 0 0 0 3px #00bcd4;
+            }
+
+            &.last-update {
+              background-color: #607d8b;
+              box-shadow: 0 0 0 3px #607d8b;
+            }
+          }
+
+          .timeline-content {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 16px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+
+            &:hover {
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+              transform: translateX(4px);
+            }
+
+            .timeline-title {
+              font-weight: 700;
+              color: #333;
+              margin-bottom: 6px;
+              font-size: 0.95rem;
+            }
+
+            .timeline-date {
+              color: #666;
+              font-size: 0.9rem;
+              font-weight: 500;
+            }
+          }
         }
       }
     }
@@ -231,6 +339,7 @@
   }
 }
 
+// Responsive design
 @media (max-width: 768px) {
   .trial-detail-container {
     padding: 16px;

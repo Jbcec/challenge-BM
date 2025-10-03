@@ -83,6 +83,75 @@
       </mat-card-content>
     </mat-card>
 
+    <mat-card class="timeline-card" *ngIf="trialDetail.timeline">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>timeline</mat-icon>
+          Study Timeline
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="timeline-container">
+          <div class="timeline-item" *ngIf="trialDetail.timeline.studyFirstSubmitDate">
+            <div class="timeline-marker first-submit"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Study First Submitted</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.studyFirstSubmitDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.studyFirstPostDate">
+            <div class="timeline-marker first-post"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Study First Posted</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.studyFirstPostDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.startDate">
+            <div class="timeline-marker start-date"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Study Start Date</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.startDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.statusVerifiedDate">
+            <div class="timeline-marker verified"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Status Verified</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.statusVerifiedDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.lastUpdatePostDate">
+            <div class="timeline-marker last-update"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Last Update Posted</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.lastUpdatePostDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.primaryCompletionDate">
+            <div class="timeline-marker primary-completion"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Primary Completion Date</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.primaryCompletionDate)}}</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" *ngIf="trialDetail.timeline.completionDate">
+            <div class="timeline-marker completion"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Study Completion Date</div>
+              <div class="timeline-date">{{formatDate(trialDetail.timeline.completionDate)}}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <mat-card class="locations-card" *ngIf="trialDetail.locations && trialDetail.locations.length > 0">
       <mat-card-header>
         <mat-card-title>
